@@ -11,7 +11,7 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from openssh_regex import analyse, main, read_events
+from openssh_regex import analyse, main, print_report, read_events
 
 HEADER = "LineId,Date,Day,Time,Component,Pid,Content,EventId,EventTemplate"
 
@@ -81,6 +81,30 @@ def test_invalid_user_lines_are_not_double_counted():                   # FIX 8
             ("Jan", 1, "00:00:01", fail("10.0.0.3", user="invalid user admin"))]
     [report] = run(rows)
     assert report.failures == 1 and report.users == {"admin"}
+
+
+def test_usernames_with_spaces_are_still_counted():                    # FIX 10
+    # a real evasion from the Loghub sample: a leading space in the username
+    rows = [("Jan", 1, "00:00:00", fail("10.0.0.4", user="invalid user  0101")),
+            ("Jan", 1, "00:00:01", fail("10.0.0.4", user="john smith"))]
+    [report] = run(rows)
+    assert report.failures == 2 and report.users == {" 0101", "john smith"}
+
+
+def test_fake_from_inside_the_username_cannot_frame_another_ip():       # FIX 10
+    rows = [("Jan", 1, f"00:00:0{s}",
+             fail("10.0.0.5", user="invalid user x from 6.6.6.6 port 1")) for s in range(5)]
+    [report] = run(rows)
+    assert str(report.ip) == "10.0.0.5" and report.brute_force
+    assert report.users == {"x from 6.6.6.6 port 1"}
+
+
+def test_report_quotes_usernames_with_hidden_spaces():                  # FIX 10
+    out = io.StringIO()
+    events = read_events(io.StringIO(csv_text(
+        [("Jan", 1, "00:00:00", fail("10.0.0.6", user="invalid user  0101"))])), 2026)
+    print_report(analyse(events), 5, 10, out=out)
+    assert "' 0101'" in out.getvalue()
 
 
 def test_success_after_brute_force_is_reported():                       # FIX 9

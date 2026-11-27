@@ -44,10 +44,19 @@ REQUIRED_COLUMNS = {"Date", "Day", "Time", "Content"}
 # the line, match sshd's own sentence structure and take whatever follows
 # "from". That covers IPv6 as well as IPv4, and any authentication method
 # ("Failed password", "Failed publickey", "Failed keyboard-interactive/pam").
+#
+# FIX 10: the username is chosen by the ATTACKER, so it can contain anything,
+# spaces included. "\S+" for the user missed "Failed password for invalid
+# user  0101 from ..." (a leading space) completely: an attempt that slipped
+# past detection. Now the user is ".*", which is greedy: it takes as much as
+# it can, so the IP comes from the LAST "from <ip> port <n>" on the line. That
+# matters, because a username like "x from 6.6.6.6 port 1" must not make us
+# blame 6.6.6.6. Only sshd writes text after the real port, so the last one
+# is always the real one. The username is kept exactly as sent.
 FAILED = re.compile(
-    r"Failed (?P<method>\S+) for (?:invalid user )?(?P<user>\S+) from (?P<ip>\S+) port \d+")
+    r"Failed (?P<method>\S+) for (?:invalid user )?(?P<user>.*) from (?P<ip>\S+) port \d+")
 ACCEPTED = re.compile(
-    r"Accepted (?P<method>\S+) for (?P<user>\S+) from (?P<ip>\S+) port \d+")
+    r"Accepted (?P<method>\S+) for (?P<user>.*) from (?P<ip>\S+) port \d+")
 # syslog collapses identical lines into one: "message repeated 3 times: [ ... ]".
 REPEATED = re.compile(r"message repeated (?P<times>\d+) times: \[ ?(?P<message>.*?) ?\]$")
 
@@ -206,7 +215,9 @@ def print_report(reports, threshold, window_minutes, out=sys.stdout):
           file=out)
     for r in reports:
         # FIX 9: one wording for both cases, instead of two near-identical strings.
-        users = ", ".join(sorted(r.users))
+        # FIX 10: a username with spaces at the ends (or an empty one) is
+        # shown in quotes, so " 0101" doesn't look like "0101" in the report.
+        users = ", ".join(u if u and u == u.strip() else repr(u) for u in sorted(r.users))
         print(f"{r.ip:<26} {r.failures:>6} {r.peak:>5}  {'Yes' if r.brute_force else 'No':<13} "
               f"{users}", file=out)
         if r.success_after:
