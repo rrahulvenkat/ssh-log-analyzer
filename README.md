@@ -1,6 +1,10 @@
-# LogAnalyzer
+# ssh-log-analyzer
 
 Detects SSH brute-force attempts in OpenSSH logs using regular expressions.
+
+[log-analyzer-agent](https://github.com/rrahulvenkat/log-analyzer-agent) solves
+the same problem with an LLM. This version is free, instant and predictable;
+that one can read log lines nobody wrote a pattern for.
 
 For every source IP it reports the total failed logins, the peak number of
 failures inside a rolling time window, the usernames tried, and whether the
