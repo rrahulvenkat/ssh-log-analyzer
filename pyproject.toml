@@ -1,7 +1,7 @@
 [project]
 name = "loganalyzer"
 version = "0.1.0"
-description = "Add your description here"
+description = "Detect SSH brute-force attempts in OpenSSH logs with regular expressions"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
