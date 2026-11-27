@@ -11,3 +11,6 @@ wheels/
 
 # macOS
 .DS_Store
+
+# Log data: download it yourself (see the README), never commit logs
+data/

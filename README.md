@@ -12,6 +12,11 @@ A structured OpenSSH log CSV in the [Loghub](https://github.com/logpai/loghub)
 format, with at least these columns: `Date` (month), `Day`, `Time`, `Content`.
 By default it reads `data/OpenSSH_2k.log_structured.csv` next to the script.
 
+The data isn't in this repository (`data/` is in `.gitignore`, so logs are
+never committed by accident). Download `OpenSSH_2k.log_structured.csv` from the
+`OpenSSH` folder of the Loghub repository into `data/`, or pass the path to
+your own file.
+
 ## Usage
 
 ```
