@@ -2,6 +2,12 @@
 
 Detects SSH brute-force attempts in OpenSSH logs using regular expressions.
 
+> **Part of a four-step series on SSH brute-force detection:**
+> 1. **ssh-log-analyzer** (this repo): regex rules
+> 2. [log-analyzer-agent](https://github.com/rrahulvenkat/log-analyzer-agent): Claude reads each line
+> 3. [ssh-detection-eval](https://github.com/rrahulvenkat/ssh-detection-eval): the two compared
+> 4. [ssh-hybrid-detector](https://github.com/rrahulvenkat/ssh-hybrid-detector): rules first, Claude for the rest
+
 [log-analyzer-agent](https://github.com/rrahulvenkat/log-analyzer-agent) solves
 the same problem with an LLM. This version is free, instant and predictable;
 that one can read log lines nobody wrote a pattern for.
@@ -20,6 +26,12 @@ The data isn't in this repository (`data/` is in `.gitignore`, so logs are
 never committed by accident). Download `OpenSSH_2k.log_structured.csv` from the
 `OpenSSH` folder of the Loghub repository into `data/`, or pass the path to
 your own file.
+
+**On a real server:** this tool reads only Loghub's CSV, not a raw
+`/var/log/auth.log`. To scan a real server's logs, use
+[ssh-hybrid-detector](https://github.com/rrahulvenkat/ssh-hybrid-detector):
+`python hybrid.py /var/log/auth.log --no-llm` runs the same kind of
+regex rules on raw syslog lines, free and offline.
 
 ## Usage
 
